@@ -10,6 +10,14 @@ public class Location {
 		// no-arg
 	}
 	
+	public Location(String city, String state, String country) {
+		super();
+		this.city = city;
+		this.state = state;
+		this.country = country;
+		this.id = null;
+	}
+
 	public Location(Long id, String city, String state, String country) {
 		super();
 		this.id = id;

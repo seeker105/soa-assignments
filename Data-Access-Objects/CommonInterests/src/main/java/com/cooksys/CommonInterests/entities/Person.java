@@ -1,21 +1,47 @@
 package com.cooksys.CommonInterests.entities;
 
+import java.util.Set;
+
 public class Person {
 	private Long id;
 	private String firstname;
 	private String lastName;
 	private Integer age;
-	
+	private Location location;
+	private Set<Interest> interests;
+
 	public Person(){
 		// no-arg
 	}
 	
-	public Person(Long id, String firstname, String lastName, Integer age) {
+	public Person(String firstname, String lastName, Integer age, Location location, Set<Interest> interests) {
+		super();
+		this.firstname = firstname;
+		this.lastName = lastName;
+		this.age = age;
+		this.id = null;
+		this.location = location;
+		this.interests = interests;
+	}
+	
+	public Person(Long id, String firstname, String lastName, Integer age, Location location) {
+		super();
+		this.firstname = firstname;
+		this.lastName = lastName;
+		this.age = age;
+		this.id = id;
+		this.location = location;
+		this.interests = null;
+	}
+	
+	public Person(Long id, String firstname, String lastName, Integer age, Location location, Set<Interest> interests) {
 		super();
 		this.id = id;
 		this.firstname = firstname;
 		this.lastName = lastName;
 		this.age = age;
+		this.location = location;
+		this.interests = interests;
 	}
 	
 	public Long getId() {
@@ -50,6 +76,26 @@ public class Person {
 		this.age = age;
 	}
 	
+	public Location getLocation() {
+		return location;
+	}
+	
+	public Long getLocationId() {
+		return location.getId();
+	}
+
+	public void setLocation(Location location) {
+		this.location = location;
+	}
+
+	public Set<Interest> getInterests() {
+		return interests;
+	}
+
+	public void setInterests(Set<Interest> interests) {
+		this.interests = interests;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -82,6 +128,7 @@ public class Person {
 	
 	@Override
 	public String toString() {
-		return "Person [id=" + id + ", firstname=" + firstname + ", lastName=" + lastName + ", age=" + age + "]";
+		return "Person [id=" + id + ", firstname=" + firstname + ", lastName=" + lastName + ", age=" + age
+				+ ", location=" + location + ", interests=" + interests + "]";
 	}
 }

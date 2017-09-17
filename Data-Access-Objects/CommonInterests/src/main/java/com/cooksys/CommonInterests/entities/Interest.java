@@ -8,6 +8,12 @@ public class Interest {
 		// no-arg
 	}
 	
+	public Interest(String title) {
+		super();
+		this.title = title;
+		this.id = null;
+	}
+
 	public Interest(Long id, String title) {
 		super();
 		this.id = id;
