@@ -218,17 +218,7 @@ public class App
 				e.printStackTrace();
 			}
 	        
-	        
-	        
-	        
 	        conn.close();
-	        
-//			Statement stmt = conn.createStatement();
-//	        ResultSet rs = stmt.executeQuery("SELECT * FROM \"Person\"");
-//			while(rs.next()){
-//				System.out.println(rs.getString("firstName"));
-//			}
-			
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
