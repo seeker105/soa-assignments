@@ -31,15 +31,17 @@ public class App
 			
 	        LocationDao locationDao = new LocationDao(conn);
 	        InterestDao interestDao = new InterestDao(conn);
-	        PersonDao personDao = new PersonDao(conn, locationDao, interestDao);
+	        PersonDao personDao = new PersonDao(conn);
 	        Location location1 = locationDao.get(new Long("1"));
 	        Location location2 = locationDao.get(new Long("2"));
+	        
 	        Interest interest1 = interestDao.get(new Long("1"));
 	        Interest interest2 = interestDao.get(new Long("2"));
 	        Interest interest3 = interestDao.get(new Long("3"));
 	        Interest interest4 = interestDao.get(new Long("4"));
 	        Interest interest5 = interestDao.get(new Long("5"));
 	        Interest interest6 = interestDao.get(new Long("6"));
+	        
 	        HashSet<Interest> interests1 = new HashSet<Interest>();
 	        interests1.add(interest1);
 	        interests1.add(interest2);

@@ -22,17 +22,12 @@ public class InterestDao {
 		try {
 			st = conn.createStatement();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public Set<Interest> get(Person person){		
-		if (st == null){
-			System.out.println("Statement null in InterestDao get method. Execution failed");
-			return null;
-		}
-		HashSet<Interest> interest = new HashSet<Interest>();
+		HashSet<Interest> interests = new HashSet<Interest>();
 		
 		try {
 			String query = "SELECT * FROM \"Interests\" JOIN \"PersonInterests\"";
@@ -42,21 +37,16 @@ public class InterestDao {
 			query += "WHERE \"Person\".id = " + person.getId();
 			ResultSet rs = st.executeQuery(query);
 			while(rs.next()){
-				interest.add(new Interest(rs.getLong("interest_id"), rs.getString("title")));			
+				interests.add(new Interest(rs.getLong("interest_id"), rs.getString("title")));			
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return interest;
+		return interests;
 	}
 	
 	
 	public Interest get(Long id){		
-		if (st == null){
-			System.out.println("Statement null in InterestDao get method. Execution failed");
-			return null;
-		}
 		Interest interest = null;
 		
 		try {
@@ -64,20 +54,12 @@ public class InterestDao {
 			rs.next();
 			interest = new Interest(rs.getLong("id"), rs.getString("title"));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return interest;
 	}
 	
-	
-	
 	public Interest saveInterest(Interest interest) throws IOException{
-		if (st == null){
-			System.out.println("Statement null in InterestDao saveInterest method. Execution failed");
-			return null;
-		}	
-		
 		try {
 			if (interest.getId() == null){
 				String query = "INSERT INTO \"Interests\" (\"title\") VALUES ('" + interest.getTitle() +"')";
@@ -87,12 +69,6 @@ public class InterestDao {
 				interest.setId(rs.getLong("id"));
 				return interest;
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
 			String query = "UPDATE \"Interests\" SET ";
 			query += String.format("\"title\"='%s' ", interest.getTitle());
 			query += String.format("WHERE id='%s'", interest.getId());
@@ -100,7 +76,6 @@ public class InterestDao {
 			if (modifiedCount < 1)
 				throw new IOException();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return interest;
@@ -110,7 +85,6 @@ public class InterestDao {
 		try {
 			st.executeUpdate("DELETE FROM \"Interests\" WHERE id='" + interest.getId() + "'");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return interest;

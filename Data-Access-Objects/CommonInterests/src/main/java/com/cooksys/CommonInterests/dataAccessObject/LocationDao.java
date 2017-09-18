@@ -17,21 +17,14 @@ public class LocationDao {
 	}
 	
 	public LocationDao(Connection conn){
-		st = null;
-		
 		try {
 			st = conn.createStatement();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public Location get(Person person){		
-		if (st == null){
-			System.out.println("Statement null in LocationDao get method. Execution failed");
-			return null;
-		}
 		Location loc = null;
 		
 		try {
@@ -40,23 +33,16 @@ public class LocationDao {
 			query += "\"Person\".location_id = \"Locations\".id ";
 			query += "WHERE \"Person\".id = " + person.getId();
 			
-			
 			ResultSet rs = st.executeQuery(query);
 			rs.next();
 			loc = new Location(rs.getLong("location_id"), rs.getString("city"), rs.getString("state"), rs.getString("country"));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return loc;
 	}
 	
-	
 	public Location get(Long id){		
-		if (st == null){
-			System.out.println("Statement null in LocationDao get method. Execution failed");
-			return null;
-		}
 		Location loc = null;
 		
 		try {
@@ -64,20 +50,13 @@ public class LocationDao {
 			rs.next();
 			loc = new Location(rs.getLong("id"), rs.getString("city"), rs.getString("state"), rs.getString("country"));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return loc;
 	}
 	
 	
-	
 	public Location saveLocation(Location location) throws IOException{
-		if (st == null){
-			System.out.println("Statement null in LocationDao saveLocation method. Execution failed");
-			return null;
-		}	
-		
 		try {
 			if (location.getId() == null){
 				String query = "INSERT INTO \"Locations\" (\"city\", \"state\", \"country\") VALUES ";
@@ -88,12 +67,6 @@ public class LocationDao {
 				location.setId(rs.getLong("id"));
 				return location;
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
 			String query = "UPDATE \"Locations\" SET ";
 			query += String.format("\"city\"='%s', \"state\"='%s', \"country\"='%s' ", location.getCity(), location.getState(), location.getCountry());
 			query += String.format("WHERE id='%s'", location.getId());
@@ -101,7 +74,6 @@ public class LocationDao {
 			if (modifiedCount < 1)
 				throw new IOException();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return location;
@@ -111,7 +83,6 @@ public class LocationDao {
 		try {
 			st.executeUpdate("DELETE FROM \"Locations\" WHERE id='" + location.getId() + "'");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return location;

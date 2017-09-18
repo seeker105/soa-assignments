@@ -24,29 +24,14 @@ public class PersonDao {
 	public PersonDao(Connection conn){
 		try {
 			this.st = conn.createStatement();
+			this.locationDao = new LocationDao(conn);
+			this.interestDao = new InterestDao(conn);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}	
 	
-	public PersonDao(Connection conn, LocationDao locationDao, InterestDao interestDao){
-		try {
-			this.st = conn.createStatement();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		this.locationDao = locationDao;
-		this.interestDao = interestDao;
-	}
-	
 	public Person get(Long id){
-		if (st == null){
-			System.out.println("Statement null in PersonDao getId method. Execution failed");
-			return null;
-		}
-		
 		try {
 			ResultSet rs = st.executeQuery("SELECT * FROM \"Person\" WHERE id='" + id + "'");
 			rs.next();
@@ -56,57 +41,16 @@ public class PersonDao {
 			person.setInterests(interests);
 			return person;
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
 	public Person savePerson(Person person) throws IOException{
-		if (st == null){
-			System.out.println("Statement null in PersonDao savePerson method. Execution failed");
-			return null;
-		}	
-		
-		String query;
-		try {
-			if (person.getId() == null){
-				query = "INSERT INTO \"Person\" (\"firstName\", \"lastName\", \"age\", \"location_id\") VALUES ";
-				query += String.format("('%s', '%s', '%d', '%d')", person.getFirstname(), person.getLastName(), person.getAge(), person.getLocationId());
-				st.execute(query, Statement.RETURN_GENERATED_KEYS);
-				ResultSet rs = st.getGeneratedKeys();
-				rs.next();
-				person.setId(rs.getLong("id"));
-				for (Interest i : person.getInterests()){
-					query = "INSERT INTO \"PersonInterests\" (person_id, interest_id) VALUES ";
-					query += String.format("('%d', '%d')", person.getId(), i.getId());
-					st.executeUpdate(query);
-				}
-				return person;
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (person.getId() == null){
+			return insertPersonIntoDb(person);
 		}
-		
-		try {
-			query = "UPDATE \"Person\" SET ";
-			query += String.format("\"firstName\"='%s', \"lastName\"='%s', \"age\"='%d', \"location_id\"='%d'", person.getFirstname(), person.getLastName(), person.getAge(), person.getLocationId());
-			query += "WHERE id = " + person.getId();
-			Integer modifiedCount = st.executeUpdate(query);
-			if (modifiedCount < 1)
-				throw new IOException();
-			st.executeUpdate("DELETE FROM \"PersonInterests\" WHERE person_id = " + person.getId());
-			for (Interest i : person.getInterests()){
-				query = "INSERT INTO \"PersonInterests\" (person_id, interest_id) VALUES ";
-				query += String.format("('%d', '%d')", person.getId(), i.getId());
-				st.executeUpdate(query);
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return person;
+		return updatePersonInDb(person);  // throws IOException if person's ID is not in the Database
 	}
 	
 	public Person removePerson(Person person){
@@ -114,19 +58,47 @@ public class PersonDao {
 			st.executeUpdate("DELETE FROM \"PersonInterests\" WHERE person_id = " + person.getId());
 			st.executeUpdate("DELETE FROM \"Person\" WHERE id='" + person.getId() + "'");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		return person;
 	}
 	
-	public Set<Person> findInterestGroup(Interest interest, Location loc){
-		if (st == null){
-			System.out.println("Statement null in PersonDao findInterestGroup method. Execution failed");
-			return null;
-		}
+	public Set<Person> findInterestGroup(Interest interest, Location location){
 		HashSet<Person> personSet = new HashSet<Person>();
-		
+		try {
+			String query = buildFindInterestGroupQuery(interest, location);
+			ResultSet rs = st.executeQuery(query.toString());
+			HashSet<Long> personIdSet = new HashSet<Long>();
+			while (rs.next()){
+				personIdSet.add(rs.getLong("person_id"));
+			}
+			// Must process first ResultSet object fully before creating a new ResultSet in the `get` method
+			for (Long id : personIdSet){
+				personSet.add(get(id));
+			}
+		} catch (SQLException e) {
+			
+			e.printStackTrace();
+		}
+		return personSet;
+	}
+	
+	private void putPersonInterestsInDb(Person person){
+		try {
+			String query;
+			st.executeUpdate("DELETE FROM \"PersonInterests\" WHERE person_id = " + person.getId());
+			for (Interest i : person.getInterests()){
+				query = "INSERT INTO \"PersonInterests\" (person_id, interest_id) VALUES ";
+				query += String.format("('%d', '%d')", person.getId(), i.getId());
+				st.executeUpdate(query);
+			}
+		}  catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private String buildFindInterestGroupQuery(Interest interest, Location location){
 		StringBuilder query = new StringBuilder();
 		query.append("select * from \"Person\" ");
 		query.append("join \"Locations\" ");
@@ -135,20 +107,43 @@ public class PersonDao {
 		query.append("on \"Person\".\"id\" = \"PersonInterests\".\"person_id\" ");
 		query.append("join \"Interests\" ");
 		query.append("on \"PersonInterests\".\"interest_id\" = \"Interests\".\"id\" ");
-		query.append("where \"location_id\" = " + loc.getId() + " and \"interest_id\" = " + interest.getId() + "");
-		
+		query.append("where \"location_id\" = " + location.getId() + " and \"interest_id\" = " + interest.getId() + "");
+		return query.toString();
+	}
+	
+	private Person insertPersonIntoDb(Person person){
 		try {
-			ResultSet rs = st.executeQuery(query.toString());
-			while (rs.next()){
-				Location location = locationDao.get(rs.getLong("location_id"));
-				personSet.add(new Person(rs.getLong("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getInt("age"), location));
-			}
+			String query = "INSERT INTO \"Person\" (\"firstName\", \"lastName\", \"age\", \"location_id\") VALUES ";
+			query += String.format("('%s', '%s', '%d', '%d')", person.getFirstname(), person.getLastName(), person.getAge(), person.getLocationId());
+			st.execute(query, Statement.RETURN_GENERATED_KEYS);
+			ResultSet rs = st.getGeneratedKeys();
+			rs.next();
+			person.setId(rs.getLong("id"));
+			putPersonInterestsInDb(person);
+			return person;
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
-		return personSet;
-	}               
+		return null;
+	}
+
+	private Person updatePersonInDb(Person person) throws IOException {
+		try {
+			String query = "UPDATE \"Person\" SET ";
+			query += String.format("\"firstName\"='%s', \"lastName\"='%s', \"age\"='%d', \"location_id\"='%d'", person.getFirstname(), person.getLastName(), person.getAge(), person.getLocationId());
+			query += "WHERE id = " + person.getId();
+			Integer modifiedCount;
+			modifiedCount = st.executeUpdate(query);
+			if (modifiedCount < 1)
+				throw new IOException();
+			putPersonInterestsInDb(person);
+			return person;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 
 
